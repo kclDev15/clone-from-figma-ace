@@ -43,6 +43,30 @@ const BookRoom: React.FC = () => {
     },
   });
 
+  // Function to get blocked dates for a specific room
+  const getBlockedDatesForRoom = (roomId: string): Date[] => {
+    const existingReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+    const blockedDates: Date[] = [];
+    
+    existingReservations
+      .filter((reservation: Reservation) => 
+        reservation.roomId === roomId && reservation.status !== 'cancelled'
+      )
+      .forEach((reservation: Reservation) => {
+        const checkIn = new Date(reservation.checkIn);
+        const checkOut = new Date(reservation.checkOut);
+        
+        // Add all dates in the reservation range
+        let currentDate = new Date(checkIn);
+        while (currentDate <= checkOut) {
+          blockedDates.push(new Date(currentDate));
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      });
+    
+    return blockedDates;
+  };
+
   // Function to check if room is available for given dates
   const isRoomAvailableForDates = (roomId: string, checkIn: Date, checkOut: Date) => {
     const existingReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
@@ -141,6 +165,32 @@ const BookRoom: React.FC = () => {
   useEffect(() => {
     setRooms(getAvailableRooms());
   }, []);
+
+  // Update calendar when selectedRoom changes or when reservations change
+  useEffect(() => {
+    // Force re-render of calendar when room selection changes
+    if (selectedRoom) {
+      // Reset form dates to ensure calendar updates with new blocked dates
+      const currentCheckIn = form.getValues('checkIn');
+      const currentCheckOut = form.getValues('checkOut');
+      
+      if (currentCheckIn) {
+        const blockedDates = getBlockedDatesForRoom(selectedRoom.id);
+        const isCheckInBlocked = blockedDates.some(date => 
+          date.toDateString() === currentCheckIn.toDateString()
+        );
+        
+        if (isCheckInBlocked) {
+          form.setValue('checkIn', undefined as any);
+          form.setValue('checkOut', undefined as any);
+          toast.warning('Fechas seleccionadas no disponibles', {
+            description: 'Las fechas que seleccionaste están ocupadas para esta habitación.',
+            duration: 3000,
+          });
+        }
+      }
+    }
+  }, [selectedRoom, form]);
 
   const watchedRoomId = form.watch('roomId');
   
@@ -357,9 +407,22 @@ const BookRoom: React.FC = () => {
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date < new Date() || date < new Date("1900-01-01")
-                                }
+                                disabled={(date) => {
+                                  // Disable past dates
+                                  if (date < new Date() || date < new Date("1900-01-01")) {
+                                    return true;
+                                  }
+                                  
+                                  // Disable blocked dates for selected room
+                                  if (selectedRoom) {
+                                    const blockedDates = getBlockedDatesForRoom(selectedRoom.id);
+                                    return blockedDates.some(blockedDate => 
+                                      date.toDateString() === blockedDate.toDateString()
+                                    );
+                                  }
+                                  
+                                  return false;
+                                }}
                                 initialFocus
                                 className="p-3 pointer-events-auto"
                               />
@@ -400,9 +463,28 @@ const BookRoom: React.FC = () => {
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
-                                disabled={(date) =>
-                                  date < new Date() || date < new Date("1900-01-01")
-                                }
+                                disabled={(date) => {
+                                  // Disable past dates
+                                  if (date < new Date() || date < new Date("1900-01-01")) {
+                                    return true;
+                                  }
+                                  
+                                  // Disable dates before check-in
+                                  const checkInDate = form.watch('checkIn');
+                                  if (checkInDate && date <= checkInDate) {
+                                    return true;
+                                  }
+                                  
+                                  // Disable blocked dates for selected room
+                                  if (selectedRoom) {
+                                    const blockedDates = getBlockedDatesForRoom(selectedRoom.id);
+                                    return blockedDates.some(blockedDate => 
+                                      date.toDateString() === blockedDate.toDateString()
+                                    );
+                                  }
+                                  
+                                  return false;
+                                }}
                                 initialFocus
                                 className="p-3 pointer-events-auto"
                               />
@@ -500,21 +582,77 @@ const BookRoom: React.FC = () => {
                         </span>
                       </div>
                     )}
-                  </div>
+                   </div>
 
-                  <div>
-                    <h4 className="font-medium mb-2">Included amenities:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedRoom.amenities.map((amenity, index) => (
-                        <span
-                          key={index}
-                          className="bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-sm"
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                   {/* Blocked dates indicator */}
+                   <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                     <h4 className="font-medium mb-2 text-red-800 flex items-center">
+                       <CalendarIcon className="w-4 h-4 mr-2" />
+                       Fechas Ocupadas
+                     </h4>
+                     <div className="text-sm text-red-700">
+                       {(() => {
+                         const blockedDates = getBlockedDatesForRoom(selectedRoom.id);
+                         if (blockedDates.length === 0) {
+                           return <span className="text-green-700">✓ No hay fechas ocupadas para esta habitación</span>;
+                         }
+                         
+                         // Group consecutive dates
+                         const groupedDates: string[] = [];
+                         let start = blockedDates[0];
+                         let end = blockedDates[0];
+                         
+                         for (let i = 1; i < blockedDates.length; i++) {
+                           const currentDate = blockedDates[i];
+                           const prevDate = blockedDates[i - 1];
+                           
+                           if (currentDate.getTime() - prevDate.getTime() === 24 * 60 * 60 * 1000) {
+                             end = currentDate;
+                           } else {
+                             if (start.toDateString() === end.toDateString()) {
+                               groupedDates.push(format(start, 'dd/MM/yyyy'));
+                             } else {
+                               groupedDates.push(`${format(start, 'dd/MM/yyyy')} - ${format(end, 'dd/MM/yyyy')}`);
+                             }
+                             start = currentDate;
+                             end = currentDate;
+                           }
+                         }
+                         
+                         // Add the last group
+                         if (start.toDateString() === end.toDateString()) {
+                           groupedDates.push(format(start, 'dd/MM/yyyy'));
+                         } else {
+                           groupedDates.push(`${format(start, 'dd/MM/yyyy')} - ${format(end, 'dd/MM/yyyy')}`);
+                         }
+                         
+                         return (
+                           <div className="space-y-1">
+                             {groupedDates.slice(0, 3).map((dateRange, index) => (
+                               <div key={index}>• {dateRange}</div>
+                             ))}
+                             {groupedDates.length > 3 && (
+                               <div className="text-xs">... y {groupedDates.length - 3} más</div>
+                             )}
+                           </div>
+                         );
+                       })()}
+                     </div>
+                   </div>
+
+                   <div>
+                     <h4 className="font-medium mb-2">Included amenities:</h4>
+                     <div className="flex flex-wrap gap-2">
+                       {selectedRoom.amenities.map((amenity, index) => (
+                         <span
+                           key={index}
+                           className="bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-sm"
+                         >
+                           {amenity}
+                         </span>
+                       ))}
+                     </div>
+                   </div>
                 </div>
               </CardContent>
             </Card>
