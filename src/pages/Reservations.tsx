@@ -100,7 +100,8 @@ const Reservations: React.FC = () => {
     const now = new Date();
     const checkInDate = new Date(reservation.checkIn);
     const hoursUntilCheckIn = (checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-    return reservation.status === 'confirmed' && hoursUntilCheckIn > 24;
+    // Allow cancellation if it's confirmed and more than 2 hours before check-in
+    return reservation.status === 'confirmed' && hoursUntilCheckIn > 2;
   };
 
   if (!user) {
@@ -339,7 +340,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
             
             {!canCancel && reservation.status === 'confirmed' && (
               <p className="text-xs text-gray-500">
-                Cancellation not allowed within 24 hours of check-in
+                Cancellation not allowed within 2 hours of check-in
               </p>
             )}
           </div>
