@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import LoginForm from '@/components/LoginForm';
 import RegisterForm from '@/components/RegisterForm';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 interface LoginData {
   email: string;
@@ -16,7 +18,13 @@ interface RegisterData {
 }
 
 const Index: React.FC = () => {
+  const { login, isAuthenticated } = useAuth();
   const [isRegistered, setIsRegistered] = useState(false);
+
+  // Redirect to home if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
 
   const handleRegister = async (data: RegisterData) => {
     // Simulate API call
@@ -46,7 +54,15 @@ const Index: React.FC = () => {
       throw new Error('Invalid credentials');
     }
     
-    // Success case
+    // Success case - create user object and log them in
+    const user = {
+      id: Math.random().toString(36).substr(2, 9),
+      email: data.email,
+      username: data.username,
+    };
+    
+    login(user);
+    
     toast.success('Login successful!', {
       description: `Welcome back, ${data.username}! You have been logged in successfully.`,
       duration: 4000,
