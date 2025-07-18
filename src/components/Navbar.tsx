@@ -9,8 +9,7 @@ const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   
-  // Show hamburger menu only on auth pages
-  const isAuthPage = location.pathname === '/auth' || location.pathname === '/login' || location.pathname === '/register';
+  // Show hamburger menu always for mobile responsiveness
 
   const handleLogout = () => {
     logout();
@@ -80,24 +79,54 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile menu button - only on auth pages */}
-          {isAuthPage && (
-            <div className="md:hidden">
-              <Button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                variant="ghost"
-                size="sm"
-              >
-                <Menu className="w-6 h-6" />
-              </Button>
-            </div>
-          )}
+          {/* Mobile menu button - always visible on mobile */}
+          <div className="md:hidden">
+            <Button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              variant="ghost"
+              size="sm"
+            >
+              <Menu className="w-6 h-6" />
+            </Button>
+          </div>
         </div>
 
-        {/* Mobile Navigation - only on auth pages */}
-        {isMenuOpen && isAuthPage && (
+        {/* Mobile Navigation - always available */}
+        {isMenuOpen && (
           <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-t border-purple-100 z-50">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              <NavLink
+                to="/home"
+                className={navLinkClass}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/rooms"
+                className={navLinkClass}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Rooms
+              </NavLink>
+              {isAuthenticated && (
+                <>
+                  <NavLink
+                    to="/book"
+                    className={navLinkClass}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Book
+                  </NavLink>
+                  <NavLink
+                    to="/reservations"
+                    className={navLinkClass}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    My Reservations
+                  </NavLink>
+                </>
+              )}
               {!isAuthenticated ? (
                 <>
                   <NavLink
