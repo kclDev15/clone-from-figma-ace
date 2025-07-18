@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -329,6 +330,7 @@ interface RoomCardProps {
 }
 
 const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
+  const navigate = useNavigate();
   const getRoomTypeTitle = (type: Room['type']) => {
     switch (type) {
       case 'basic':
@@ -424,6 +426,7 @@ const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
           <Button
             className="w-full bg-purple-600 hover:bg-purple-700 text-white"
             disabled={!room.isAvailable}
+            onClick={() => room.isAvailable && navigate('/book')}
           >
             {room.isAvailable ? 'Book Now' : 'Not Available'}
           </Button>
