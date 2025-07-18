@@ -149,10 +149,19 @@ const Reservations: React.FC = () => {
         </div>
 
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="active">Active Reservations</TabsTrigger>
-            <TabsTrigger value="past">Past Reservations</TabsTrigger>
-            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="active" className="text-xs sm:text-sm px-2 py-2">
+              <span className="hidden sm:inline">Active Reservations</span>
+              <span className="sm:hidden">Active</span>
+            </TabsTrigger>
+            <TabsTrigger value="past" className="text-xs sm:text-sm px-2 py-2">
+              <span className="hidden sm:inline">Past Reservations</span>
+              <span className="sm:hidden">Past</span>
+            </TabsTrigger>
+            <TabsTrigger value="cancelled" className="text-xs sm:text-sm px-2 py-2">
+              <span className="hidden sm:inline">Cancelled</span>
+              <span className="sm:hidden">Cancelled</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="active" className="space-y-6">

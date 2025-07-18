@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
   };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+    `px-2 sm:px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm sm:text-base ${
       isActive
         ? 'bg-purple-600 text-white'
         : 'text-gray-700 hover:bg-purple-100 hover:text-purple-600'
@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+            <div className="ml-2 lg:ml-10 flex items-baseline space-x-1 lg:space-x-4">
               <NavLink to="/home" className={navLinkClass}>
                 Home
               </NavLink>
