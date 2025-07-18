@@ -348,21 +348,58 @@ const BookRoom: React.FC = () => {
     return nights * roomPrice;
   };
 
-  const simulateOptimisticConcurrency = async (roomId: string, roomVersion: number, checkIn: Date, checkOut: Date) => {
-    // Check if room is still available for the selected dates
-    if (!isRoomAvailableForDates(roomId, checkIn, checkOut)) {
-      throw new Error('ROOM_UNAVAILABLE_DATES');
+  const checkConcurrencyAndReserve = async (roomId: string, checkIn: Date, checkOut: Date) => {
+    // Crear un lock temporal para esta transacción
+    const lockKey = `room_lock_${roomId}_${checkIn.toISOString()}_${checkOut.toISOString()}`;
+    const lockTimeout = 10000; // 10 segundos
+    const lockTimestamp = Date.now();
+    
+    // Intentar obtener el lock
+    const existingLock = localStorage.getItem(lockKey);
+    if (existingLock) {
+      const lockData = JSON.parse(existingLock);
+      if (Date.now() - lockData.timestamp < lockTimeout) {
+        throw new Error('ROOM_BEING_BOOKED');
+      }
     }
     
-    // Simulate optimistic concurrency control with version check
-    const conflictChance = Math.random() < 0.3; // 30% chance of conflict
+    // Establecer el lock
+    localStorage.setItem(lockKey, JSON.stringify({
+      timestamp: lockTimestamp,
+      userId: user?.id
+    }));
     
-    if (conflictChance) {
-      throw new Error('CONCURRENCY_CONFLICT');
+    try {
+      // Verificar disponibilidad una vez más con el lock activo
+      await new Promise(resolve => setTimeout(resolve, 100)); // Simular latencia
+      
+      const currentReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+      const isStillAvailable = !currentReservations.some((reservation: Reservation) => {
+        if (reservation.roomId !== roomId || reservation.status === 'cancelled') {
+          return false;
+        }
+        
+        const reservationCheckIn = new Date(reservation.checkIn);
+        const reservationCheckOut = new Date(reservation.checkOut);
+        
+        return (checkIn < reservationCheckOut && checkOut > reservationCheckIn);
+      });
+      
+      if (!isStillAvailable) {
+        throw new Error('ROOM_UNAVAILABLE_DATES');
+      }
+      
+      // Simular procesamiento de reserva
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      return true;
+      
+    } finally {
+      // Liberar el lock después del procesamiento
+      setTimeout(() => {
+        localStorage.removeItem(lockKey);
+      }, 1000);
     }
-    
-    // Simulate successful booking
-    return true;
   };
 
   const onSubmit = async (data: BookingFormData) => {
@@ -376,8 +413,8 @@ const BookRoom: React.FC = () => {
         throw new Error('ROOM_UNAVAILABLE_DATES');
       }
       
-      // Attempt booking with optimistic concurrency control
-      await simulateOptimisticConcurrency(selectedRoom.id, selectedRoom.version, data.checkIn, data.checkOut);
+      // Attempt booking with concurrency control
+      await checkConcurrencyAndReserve(data.roomId, data.checkIn, data.checkOut);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -414,9 +451,13 @@ const BookRoom: React.FC = () => {
       setSelectedRoom(null);
 
     } catch (error) {
-      if (error instanceof Error && (error.message === 'CONCURRENCY_CONFLICT' || error.message === 'ROOM_UNAVAILABLE_DATES')) {
-        toast.error('La habitación ya no está disponible.', {
-          description: 'Por favor, selecciona otra habitación de las disponibles.',
+      if (error instanceof Error && (error.message === 'ROOM_BEING_BOOKED' || error.message === 'ROOM_UNAVAILABLE_DATES')) {
+        const errorMessage = error.message === 'ROOM_BEING_BOOKED' 
+          ? 'Otra persona está reservando esta habitación en este momento.'
+          : 'La habitación ya no está disponible para estas fechas.';
+        
+        toast.error(errorMessage, {
+          description: 'Por favor, selecciona otra habitación o fechas diferentes.',
           duration: 5000,
         });
         
