@@ -43,9 +43,28 @@ const BookRoom: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    // Simulate API call to fetch available rooms
-    const mockRooms: Room[] = [
+  // Function to check if room is available for given dates
+  const isRoomAvailableForDates = (roomId: string, checkIn: Date, checkOut: Date) => {
+    const existingReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+    
+    return !existingReservations.some((reservation: Reservation) => {
+      if (reservation.roomId !== roomId || reservation.status === 'cancelled') {
+        return false;
+      }
+      
+      const reservationCheckIn = new Date(reservation.checkIn);
+      const reservationCheckOut = new Date(reservation.checkOut);
+      
+      // Check for date overlap
+      return (
+        (checkIn < reservationCheckOut && checkOut > reservationCheckIn)
+      );
+    });
+  };
+
+  // Function to get currently available rooms (not reserved for any future dates)
+  const getAvailableRooms = () => {
+    const allRooms: Room[] = [
       // Basic Rooms
       {
         id: '1',
@@ -100,7 +119,27 @@ const BookRoom: React.FC = () => {
         version: 1,
       },
     ];
-    setRooms(mockRooms.filter(room => room.isAvailable));
+
+    const existingReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+    const currentDate = new Date();
+    
+    // Filter out rooms that have active reservations
+    return allRooms.filter(room => {
+      const hasActiveReservation = existingReservations.some((reservation: Reservation) => {
+        if (reservation.roomId !== room.id || reservation.status === 'cancelled') {
+          return false;
+        }
+        
+        const checkOutDate = new Date(reservation.checkOut);
+        return checkOutDate > currentDate; // Room is reserved until checkout date
+      });
+      
+      return !hasActiveReservation;
+    });
+  };
+
+  useEffect(() => {
+    setRooms(getAvailableRooms());
   }, []);
 
   const watchedRoomId = form.watch('roomId');
@@ -119,8 +158,13 @@ const BookRoom: React.FC = () => {
     return nights * roomPrice;
   };
 
-  const simulateOptimisticConcurrency = async (roomId: string, roomVersion: number) => {
-    // Simulate a small chance of concurrency conflict
+  const simulateOptimisticConcurrency = async (roomId: string, roomVersion: number, checkIn: Date, checkOut: Date) => {
+    // Check if room is still available for the selected dates
+    if (!isRoomAvailableForDates(roomId, checkIn, checkOut)) {
+      throw new Error('ROOM_UNAVAILABLE_DATES');
+    }
+    
+    // Simulate optimistic concurrency control with version check
     const conflictChance = Math.random() < 0.3; // 30% chance of conflict
     
     if (conflictChance) {
@@ -137,8 +181,13 @@ const BookRoom: React.FC = () => {
     setIsLoading(true);
     
     try {
+      // Double-check room availability for specific dates before booking
+      if (!isRoomAvailableForDates(data.roomId, data.checkIn, data.checkOut)) {
+        throw new Error('ROOM_UNAVAILABLE_DATES');
+      }
+      
       // Attempt booking with optimistic concurrency control
-      await simulateOptimisticConcurrency(selectedRoom.id, selectedRoom.version);
+      await simulateOptimisticConcurrency(selectedRoom.id, selectedRoom.version, data.checkIn, data.checkOut);
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -163,12 +212,8 @@ const BookRoom: React.FC = () => {
       const updatedReservations = [...existingReservations, reservation];
       localStorage.setItem('reservations', JSON.stringify(updatedReservations));
 
-      // Update room availability
-      setRooms(prev => prev.map(room => 
-        room.id === data.roomId 
-          ? { ...room, isAvailable: false, version: room.version + 1 }
-          : room
-      ));
+      // Update room availability list - remove reserved room from available list
+      setRooms(getAvailableRooms());
 
       toast.success('Reservation confirmed!', {
         description: `Your reservation for room ${selectedRoom.number} has been confirmed. Total: $${totalPrice}`,
@@ -179,19 +224,16 @@ const BookRoom: React.FC = () => {
       setSelectedRoom(null);
 
     } catch (error) {
-      if (error instanceof Error && error.message === 'CONCURRENCY_CONFLICT') {
-        toast.error('Oops! Someone else booked this room', {
-          description: 'The room is no longer available. Please select another room.',
+      if (error instanceof Error && (error.message === 'CONCURRENCY_CONFLICT' || error.message === 'ROOM_UNAVAILABLE_DATES')) {
+        toast.error('La habitación ya no está disponible.', {
+          description: 'Por favor, selecciona otra habitación de las disponibles.',
           duration: 5000,
         });
         
-        // Refresh room availability
-        setRooms(prev => prev.map(room => 
-          room.id === selectedRoom?.id 
-            ? { ...room, isAvailable: false }
-            : room
-        ));
+        // Refresh room availability list
+        setRooms(getAvailableRooms());
         
+        // Clear the selected room
         form.setValue('roomId', '');
         setSelectedRoom(null);
       } else {
@@ -399,11 +441,11 @@ const BookRoom: React.FC = () => {
                     <div className="flex items-start space-x-2">
                       <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
                       <div className="text-sm text-yellow-800">
-                        <p className="font-medium">Concurrency Control</p>
+                        <p className="font-medium">Control de Concurrencia Optimista</p>
                         <p>
-                          Our system ensures that only one person can book each room. 
-                          If someone else books your selected room while you complete the form, 
-                          you will be notified immediately.
+                          Nuestro sistema utiliza control de versión para garantizar que solo una persona pueda reservar cada habitación para las mismas fechas. 
+                          Si alguien más reserva la habitación seleccionada mientras completas el formulario, 
+                          verás el mensaje "La habitación ya no está disponible" y podrás seleccionar otra habitación.
                         </p>
                       </div>
                     </div>

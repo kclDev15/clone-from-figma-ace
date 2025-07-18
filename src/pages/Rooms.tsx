@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Room } from '@/types';
+import { Room, Reservation } from '@/types';
 import { Wifi, Car, Coffee, Tv, Bath, Bed } from 'lucide-react';
 
 const Rooms: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
 
-  useEffect(() => {
-    // Simulate API call to fetch rooms
-const mockRooms: Room[] = [
+  // Function to get currently available rooms (not reserved for any future dates)
+  const getAvailableRooms = () => {
+    const allRooms: Room[] = [
       // Basic Rooms
       {
         id: '1',
@@ -206,7 +206,27 @@ const mockRooms: Room[] = [
         version: 1,
       },
     ];
-    setRooms(mockRooms);
+
+    const existingReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+    const currentDate = new Date();
+    
+    // Filter out rooms that have active reservations
+    return allRooms.filter(room => {
+      const hasActiveReservation = existingReservations.some((reservation: Reservation) => {
+        if (reservation.roomId !== room.id || reservation.status === 'cancelled') {
+          return false;
+        }
+        
+        const checkOutDate = new Date(reservation.checkOut);
+        return checkOutDate > currentDate; // Room is reserved until checkout date
+      });
+      
+      return !hasActiveReservation;
+    });
+  };
+
+  useEffect(() => {
+    setRooms(getAvailableRooms());
   }, []);
 
   const getRoomTypeTitle = (type: Room['type']) => {
