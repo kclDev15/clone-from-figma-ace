@@ -158,6 +158,11 @@ const BookRoom: React.FC = () => {
         version: 1,
       };
 
+      // Save reservation to localStorage
+      const existingReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+      const updatedReservations = [...existingReservations, reservation];
+      localStorage.setItem('reservations', JSON.stringify(updatedReservations));
+
       // Update room availability
       setRooms(prev => prev.map(room => 
         room.id === data.roomId 
@@ -409,7 +414,7 @@ const BookRoom: React.FC = () => {
                     disabled={isLoading || !selectedRoom}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3"
                   >
-                    {isLoading ? 'Processing Reservation...' : 'Confirm Reservation'}
+                    {isLoading ? 'Processing Reservation...' : 'Book Now'}
                   </Button>
                 </form>
               </Form>

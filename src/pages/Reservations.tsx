@@ -17,46 +17,18 @@ const Reservations: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Simulate API call to fetch user reservations
-    const mockReservations: Reservation[] = [
-      {
-        id: '1',
-        userId: user.id,
-        roomId: '101',
-        checkIn: new Date('2024-08-15'),
-        checkOut: new Date('2024-08-18'),
-        guests: 2,
-        totalPrice: 540,
-        status: 'confirmed',
-        createdAt: new Date('2024-07-10'),
-        version: 1,
-      },
-      {
-        id: '2',
-        userId: user.id,
-        roomId: '201',
-        checkIn: new Date('2024-07-20'),
-        checkOut: new Date('2024-07-23'),
-        guests: 1,
-        totalPrice: 360,
-        status: 'confirmed',
-        createdAt: new Date('2024-06-15'),
-        version: 1,
-      },
-      {
-        id: '3',
-        userId: user.id,
-        roomId: '301',
-        checkIn: new Date('2024-09-10'),
-        checkOut: new Date('2024-09-14'),
-        guests: 3,
-        totalPrice: 1400,
-        status: 'cancelled',
-        createdAt: new Date('2024-07-05'),
-        version: 1,
-      },
-    ];
-    setReservations(mockReservations);
+    // Load reservations from localStorage
+    const savedReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+    const userReservations = savedReservations
+      .filter((reservation: Reservation) => reservation.userId === user.id)
+      .map((reservation: any) => ({
+        ...reservation,
+        checkIn: new Date(reservation.checkIn),
+        checkOut: new Date(reservation.checkOut),
+        createdAt: new Date(reservation.createdAt),
+      }));
+    
+    setReservations(userReservations);
   }, [user]);
 
   const handleCancelReservation = async (reservationId: string) => {
@@ -65,13 +37,23 @@ const Reservations: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      setReservations(prev => 
-        prev.map(reservation => 
-          reservation.id === reservationId 
-            ? { ...reservation, status: 'cancelled' as const }
-            : reservation
-        )
+      // Update local state
+      const updatedReservations = reservations.map(reservation => 
+        reservation.id === reservationId 
+          ? { ...reservation, status: 'cancelled' as const }
+          : reservation
       );
+      
+      setReservations(updatedReservations);
+
+      // Update localStorage
+      const allReservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+      const updatedAllReservations = allReservations.map((reservation: Reservation) => 
+        reservation.id === reservationId 
+          ? { ...reservation, status: 'cancelled' }
+          : reservation
+      );
+      localStorage.setItem('reservations', JSON.stringify(updatedAllReservations));
 
       toast.success('Reservation cancelled successfully', {
         description: 'Your reservation has been cancelled and refund will be processed.',
