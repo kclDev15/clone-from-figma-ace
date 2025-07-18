@@ -19,7 +19,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            "w-full h-[30px] px-4 rounded-[25px] border border-black border-solid bg-white text-[13px] font-medium text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+            "w-full h-[30px] px-3 sm:px-4 rounded-[25px] border border-black border-solid bg-white text-[13px] font-medium text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
             error && "border-red-500 focus:ring-red-500",
             className
           )}

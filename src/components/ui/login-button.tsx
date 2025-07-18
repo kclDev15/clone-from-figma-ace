@@ -12,7 +12,7 @@ const LoginButton = React.forwardRef<HTMLButtonElement, LoginButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "w-[191px] h-[39px] bg-[rgba(155,84,255,1)] border border-black border-solid rounded-[25px] text-white text-xl font-medium hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200",
+          "w-full max-w-[191px] h-[39px] bg-[rgba(155,84,255,1)] border border-black border-solid rounded-[25px] text-white text-xl font-medium hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200",
           className
         )}
         disabled={disabled || isLoading}

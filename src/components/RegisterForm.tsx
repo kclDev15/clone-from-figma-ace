@@ -6,7 +6,7 @@ import { InputField } from '@/components/ui/input-field';
 import { LoginButton } from '@/components/ui/login-button';
 import { toast } from 'sonner';
 
-const loginSchema = z.object({
+const registerSchema = z.object({
   email: z
     .string()
     .min(1, 'Email is required')
@@ -19,15 +19,21 @@ const loginSchema = z.object({
     .string()
     .min(6, 'Password must be at least 6 characters')
     .max(50, 'Password must be less than 50 characters'),
+  confirmPassword: z
+    .string()
+    .min(6, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
-interface LoginFormProps {
-  onSubmit?: (data: LoginFormData) => void | Promise<void>;
+interface RegisterFormProps {
+  onSubmit?: (data: Omit<RegisterFormData, 'confirmPassword'>) => void | Promise<void>;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -35,27 +41,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     mode: 'onBlur',
   });
 
-  const handleFormSubmit = async (data: LoginFormData) => {
+  const handleFormSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
       if (onSubmit) {
-        await onSubmit(data);
+        const { confirmPassword, ...submitData } = data;
+        await onSubmit(submitData);
       } else {
-        // Default behavior - simulate login
+        // Default behavior - simulate registration
         await new Promise(resolve => setTimeout(resolve, 1500));
-        toast.success('Login successful!', {
-          description: `Welcome back, ${data.username}!`,
+        toast.success('Registration successful!', {
+          description: `Welcome, ${data.username}! Please proceed to login.`,
         });
         reset();
       }
     } catch (error) {
-      toast.error('Login failed', {
-        description: 'Please check your credentials and try again.',
+      toast.error('Registration failed', {
+        description: 'Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -63,13 +70,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
   };
 
   return (
-    <section className="bg-white border border-black border-solid w-full max-w-[420px] min-h-[428px] relative">
+    <section className="bg-white border border-black border-solid w-full max-w-[420px] min-h-[500px] relative">
       <header className="text-center pt-[57px] pb-6">
         <h1 className="text-2xl font-medium text-black mb-4">
-          ¡Welcome!
+          ¡Register!
         </h1>
         <p className="text-[13px] font-medium text-black px-8">
-          Log in with your username and password
+          Create your account to get started
         </p>
       </header>
 
@@ -78,7 +85,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
           onSubmit={handleSubmit(handleFormSubmit)}
           className="space-y-6"
           noValidate
-          aria-label="Login form"
+          aria-label="Registration form"
         >
           <InputField
             label="Email"
@@ -102,14 +109,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
             label="Password"
             type="password"
             placeholder="Enter your password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             {...register('password')}
             error={errors.password?.message}
           />
 
+          <InputField
+            label="Confirm Password"
+            type="password"
+            placeholder="Confirm your password"
+            autoComplete="new-password"
+            {...register('confirmPassword')}
+            error={errors.confirmPassword?.message}
+          />
+
           <div className="flex justify-center pt-4">
             <LoginButton isLoading={isLoading}>
-              LOGIN
+              REGISTER
             </LoginButton>
           </div>
         </form>
@@ -118,4 +134,4 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit }) => {
   );
 };
 
-export default LoginForm;
+export default RegisterForm;
