@@ -10,63 +10,86 @@ const Rooms: React.FC = () => {
 
   useEffect(() => {
     // Simulate API call to fetch rooms
-    const mockRooms: Room[] = [
+const mockRooms: Room[] = [
+      // Basic Rooms
       {
         id: '1',
         number: '101',
-        type: 'single',
-        price: 120,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado'],
+        type: 'basic',
+        price: 89,
+        amenities: ['WiFi', 'TV', 'Private Bathroom', 'Air Conditioning'],
         image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400',
         isAvailable: true,
         version: 1,
       },
       {
         id: '2',
-        number: '201',
-        type: 'double',
-        price: 180,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado', 'Minibar', 'Vista al Mar'],
-        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400',
-        isAvailable: true,
-        version: 1,
-      },
-      {
-        id: '3',
-        number: '301',
-        type: 'suite',
-        price: 350,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado', 'Minibar', 'Vista al Mar', 'Jacuzzi', 'Sala de Estar'],
-        image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
-        isAvailable: true,
-        version: 1,
-      },
-      {
-        id: '4',
         number: '102',
-        type: 'single',
-        price: 120,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado'],
+        type: 'basic',
+        price: 89,
+        amenities: ['WiFi', 'TV', 'Private Bathroom', 'Air Conditioning'],
         image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400',
         isAvailable: false,
         version: 1,
       },
       {
+        id: '3',
+        number: '103',
+        type: 'basic',
+        price: 89,
+        amenities: ['WiFi', 'TV', 'Private Bathroom', 'Air Conditioning'],
+        image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400',
+        isAvailable: true,
+        version: 1,
+      },
+      // Premium Rooms
+      {
+        id: '4',
+        number: '201',
+        type: 'premium',
+        price: 149,
+        amenities: ['WiFi', 'Smart TV', 'Private Bathroom', 'Air Conditioning', 'Minibar', 'Ocean View', 'Room Service'],
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400',
+        isAvailable: true,
+        version: 1,
+      },
+      {
         id: '5',
         number: '202',
-        type: 'double',
-        price: 180,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado', 'Minibar', 'Vista al Mar'],
+        type: 'premium',
+        price: 149,
+        amenities: ['WiFi', 'Smart TV', 'Private Bathroom', 'Air Conditioning', 'Minibar', 'Ocean View', 'Room Service'],
         image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400',
         isAvailable: true,
         version: 1,
       },
       {
         id: '6',
+        number: '203',
+        type: 'premium',
+        price: 149,
+        amenities: ['WiFi', 'Smart TV', 'Private Bathroom', 'Air Conditioning', 'Minibar', 'Ocean View', 'Room Service'],
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400',
+        isAvailable: true,
+        version: 1,
+      },
+      // VIP Suites
+      {
+        id: '7',
+        number: '301',
+        type: 'vip',
+        price: 299,
+        amenities: ['WiFi', 'Smart TV', 'Luxury Bathroom', 'Climate Control', 'Premium Minibar', 'Ocean View', 'Jacuzzi', 'Living Area', 'Concierge Service', 'Butler Service'],
+        image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
+        isAvailable: true,
+        version: 1,
+      },
+      {
+        id: '8',
         number: '302',
-        type: 'suite',
-        price: 350,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado', 'Minibar', 'Vista al Mar', 'Jacuzzi', 'Sala de Estar'],
+        type: 'vip',
+        price: 299,
+        amenities: ['WiFi', 'Smart TV', 'Luxury Bathroom', 'Climate Control', 'Premium Minibar', 'Ocean View', 'Jacuzzi', 'Living Area', 'Concierge Service', 'Butler Service'],
         image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
         isAvailable: true,
         version: 1,
@@ -77,14 +100,27 @@ const Rooms: React.FC = () => {
 
   const getRoomTypeTitle = (type: Room['type']) => {
     switch (type) {
-      case 'single':
-        return 'Habitación Individual';
-      case 'double':
-        return 'Habitación Doble';
-      case 'suite':
-        return 'Suite de Lujo';
+      case 'basic':
+        return 'Basic Room';
+      case 'premium':
+        return 'Premium Room';
+      case 'vip':
+        return 'VIP Suite';
       default:
-        return 'Habitación';
+        return 'Room';
+    }
+  };
+
+  const getRoomTypeDescription = (type: Room['type']) => {
+    switch (type) {
+      case 'basic':
+        return 'Comfortable and affordable accommodation with essential amenities';
+      case 'premium':
+        return 'Enhanced comfort with premium amenities and beautiful views';
+      case 'vip':
+        return 'Luxurious suite with exclusive services and premium facilities';
+      default:
+        return 'Quality accommodation';
     }
   };
 
@@ -93,12 +129,25 @@ const Rooms: React.FC = () => {
       case 'wifi':
         return <Wifi className="w-4 h-4" />;
       case 'tv':
+      case 'smart tv':
         return <Tv className="w-4 h-4" />;
-      case 'baño privado':
+      case 'private bathroom':
+      case 'luxury bathroom':
         return <Bath className="w-4 h-4" />;
+      case 'parking':
+        return <Car className="w-4 h-4" />;
+      case 'minibar':
+      case 'premium minibar':
+        return <Coffee className="w-4 h-4" />;
       default:
         return <Bed className="w-4 h-4" />;
     }
+  };
+
+  const groupedRooms = {
+    basic: rooms.filter(room => room.type === 'basic'),
+    premium: rooms.filter(room => room.type === 'premium'),
+    vip: rooms.filter(room => room.type === 'vip'),
   };
 
   return (
@@ -106,81 +155,171 @@ const Rooms: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Nuestras Habitaciones
+            Our Rooms
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Descubre nuestras elegantes habitaciones diseñadas para tu máximo confort y relajación
+            Discover our elegant rooms designed for your maximum comfort and relaxation
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {rooms.map((room) => (
-            <Card key={room.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-              <div className="relative">
-                <img
-                  src={room.image}
-                  alt={`Habitación ${room.number}`}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-4 right-4">
-                  <Badge
-                    variant={room.isAvailable ? "default" : "destructive"}
-                    className={room.isAvailable ? "bg-green-500" : ""}
-                  >
-                    {room.isAvailable ? 'Disponible' : 'Ocupada'}
-                  </Badge>
-                </div>
-              </div>
-              
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-xl text-gray-900">
-                      {getRoomTypeTitle(room.type)}
-                    </CardTitle>
-                    <CardDescription className="text-gray-600">
-                      Habitación #{room.number}
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-purple-600">
-                      ${room.price}
-                    </div>
-                    <div className="text-sm text-gray-500">por noche</div>
-                  </div>
-                </div>
-              </CardHeader>
+        {/* Room Categories */}
+        <div className="space-y-16">
+          {/* Basic Rooms */}
+          <section>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Basic Rooms</h2>
+              <p className="text-gray-600 max-w-xl mx-auto">
+                Comfortable and affordable accommodation with all essential amenities for a pleasant stay
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {groupedRooms.basic.map((room) => (
+                <RoomCard key={room.id} room={room} />
+              ))}
+            </div>
+          </section>
 
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Amenidades:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {room.amenities.map((amenity, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center space-x-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-sm"
-                        >
-                          {getAmenityIcon(amenity)}
-                          <span>{amenity}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+          {/* Premium Rooms */}
+          <section>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Premium Rooms</h2>
+              <p className="text-gray-600 max-w-xl mx-auto">
+                Enhanced comfort with premium amenities, beautiful views, and superior service
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {groupedRooms.premium.map((room) => (
+                <RoomCard key={room.id} room={room} />
+              ))}
+            </div>
+          </section>
 
-                  <Button
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                    disabled={!room.isAvailable}
-                  >
-                    {room.isAvailable ? 'Reservar Ahora' : 'No Disponible'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {/* VIP Suites */}
+          <section>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">VIP Suites</h2>
+              <p className="text-gray-600 max-w-xl mx-auto">
+                Luxurious suites with exclusive services, premium facilities, and personalized attention
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {groupedRooms.vip.map((room) => (
+                <RoomCard key={room.id} room={room} />
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </div>
+  );
+};
+
+interface RoomCardProps {
+  room: Room;
+}
+
+const RoomCard: React.FC<RoomCardProps> = ({ room }) => {
+  const getRoomTypeTitle = (type: Room['type']) => {
+    switch (type) {
+      case 'basic':
+        return 'Basic Room';
+      case 'premium':
+        return 'Premium Room';
+      case 'vip':
+        return 'VIP Suite';
+      default:
+        return 'Room';
+    }
+  };
+
+  const getAmenityIcon = (amenity: string) => {
+    switch (amenity.toLowerCase()) {
+      case 'wifi':
+        return <Wifi className="w-4 h-4" />;
+      case 'tv':
+      case 'smart tv':
+        return <Tv className="w-4 h-4" />;
+      case 'private bathroom':
+      case 'luxury bathroom':
+        return <Bath className="w-4 h-4" />;
+      case 'parking':
+        return <Car className="w-4 h-4" />;
+      case 'minibar':
+      case 'premium minibar':
+        return <Coffee className="w-4 h-4" />;
+      default:
+        return <Bed className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <div className="relative">
+        <img
+          src={room.image}
+          alt={`Room ${room.number}`}
+          className="w-full h-48 object-cover"
+        />
+        <div className="absolute top-4 right-4">
+          <Badge
+            variant={room.isAvailable ? "default" : "destructive"}
+            className={room.isAvailable ? "bg-green-500" : ""}
+          >
+            {room.isAvailable ? 'Available' : 'Occupied'}
+          </Badge>
+        </div>
+      </div>
+      
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl text-gray-900">
+              {getRoomTypeTitle(room.type)}
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Room #{room.number}
+            </CardDescription>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-purple-600">
+              ${room.price}
+            </div>
+            <div className="text-sm text-gray-500">per night</div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Amenities:</h4>
+            <div className="flex flex-wrap gap-2">
+              {room.amenities.slice(0, 6).map((amenity, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-sm"
+                >
+                  {getAmenityIcon(amenity)}
+                  <span>{amenity}</span>
+                </div>
+              ))}
+              {room.amenities.length > 6 && (
+                <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-sm">
+                  +{room.amenities.length - 6} more
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Button
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+            disabled={!room.isAvailable}
+          >
+            {room.isAvailable ? 'Book Now' : 'Not Available'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

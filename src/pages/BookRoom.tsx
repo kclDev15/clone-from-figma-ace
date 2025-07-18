@@ -17,16 +17,16 @@ import { Room, Reservation, BookingFormData } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
 const bookingSchema = z.object({
-  roomId: z.string().min(1, 'Por favor selecciona una habitación'),
+  roomId: z.string().min(1, 'Please select a room'),
   checkIn: z.date({
-    required_error: 'Por favor selecciona la fecha de entrada',
+    required_error: 'Please select check-in date',
   }),
   checkOut: z.date({
-    required_error: 'Por favor selecciona la fecha de salida',
+    required_error: 'Please select check-out date',
   }),
-  guests: z.number().min(1, 'Mínimo 1 huésped').max(6, 'Máximo 6 huéspedes'),
+  guests: z.number().min(1, 'Minimum 1 guest').max(6, 'Maximum 6 guests'),
 }).refine((data) => data.checkOut > data.checkIn, {
-  message: 'La fecha de salida debe ser posterior a la fecha de entrada',
+  message: 'Check-out date must be after check-in date',
   path: ['checkOut'],
 });
 
@@ -46,32 +46,55 @@ const BookRoom: React.FC = () => {
   useEffect(() => {
     // Simulate API call to fetch available rooms
     const mockRooms: Room[] = [
+      // Basic Rooms
       {
         id: '1',
         number: '101',
-        type: 'single',
-        price: 120,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado'],
+        type: 'basic',
+        price: 89,
+        amenities: ['WiFi', 'TV', 'Private Bathroom', 'Air Conditioning'],
         image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400',
         isAvailable: true,
         version: 1,
       },
       {
         id: '2',
+        number: '103',
+        type: 'basic',
+        price: 89,
+        amenities: ['WiFi', 'TV', 'Private Bathroom', 'Air Conditioning'],
+        image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400',
+        isAvailable: true,
+        version: 1,
+      },
+      // Premium Rooms
+      {
+        id: '3',
         number: '201',
-        type: 'double',
-        price: 180,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado', 'Minibar', 'Vista al Mar'],
+        type: 'premium',
+        price: 149,
+        amenities: ['WiFi', 'Smart TV', 'Private Bathroom', 'Air Conditioning', 'Minibar', 'Ocean View'],
         image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400',
         isAvailable: true,
         version: 1,
       },
       {
-        id: '3',
+        id: '4',
+        number: '203',
+        type: 'premium',
+        price: 149,
+        amenities: ['WiFi', 'Smart TV', 'Private Bathroom', 'Air Conditioning', 'Minibar', 'Ocean View'],
+        image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=400',
+        isAvailable: true,
+        version: 1,
+      },
+      // VIP Suites
+      {
+        id: '5',
         number: '301',
-        type: 'suite',
-        price: 350,
-        amenities: ['WiFi', 'TV', 'Baño Privado', 'Aire Acondicionado', 'Minibar', 'Vista al Mar', 'Jacuzzi', 'Sala de Estar'],
+        type: 'vip',
+        price: 299,
+        amenities: ['WiFi', 'Smart TV', 'Luxury Bathroom', 'Climate Control', 'Premium Minibar', 'Ocean View', 'Jacuzzi', 'Living Area'],
         image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
         isAvailable: true,
         version: 1,
@@ -142,8 +165,8 @@ const BookRoom: React.FC = () => {
           : room
       ));
 
-      toast.success('¡Reserva confirmada!', {
-        description: `Tu reserva para la habitación ${selectedRoom.number} ha sido confirmada. Total: $${totalPrice}`,
+      toast.success('Reservation confirmed!', {
+        description: `Your reservation for room ${selectedRoom.number} has been confirmed. Total: $${totalPrice}`,
         duration: 5000,
       });
 
@@ -152,8 +175,8 @@ const BookRoom: React.FC = () => {
 
     } catch (error) {
       if (error instanceof Error && error.message === 'CONCURRENCY_CONFLICT') {
-        toast.error('¡Ups! Alguien más reservó esta habitación', {
-          description: 'La habitación ya no está disponible. Por favor, selecciona otra habitación.',
+        toast.error('Oops! Someone else booked this room', {
+          description: 'The room is no longer available. Please select another room.',
           duration: 5000,
         });
         
@@ -167,8 +190,8 @@ const BookRoom: React.FC = () => {
         form.setValue('roomId', '');
         setSelectedRoom(null);
       } else {
-        toast.error('Error al procesar la reserva', {
-          description: 'Por favor, intenta nuevamente.',
+        toast.error('Error processing reservation', {
+          description: 'Please try again.',
         });
       }
     } finally {
@@ -178,14 +201,14 @@ const BookRoom: React.FC = () => {
 
   const getRoomTypeTitle = (type: Room['type']) => {
     switch (type) {
-      case 'single':
-        return 'Habitación Individual';
-      case 'double':
-        return 'Habitación Doble';
-      case 'suite':
-        return 'Suite de Lujo';
+      case 'basic':
+        return 'Basic Room';
+      case 'premium':
+        return 'Premium Room';
+      case 'vip':
+        return 'VIP Suite';
       default:
-        return 'Habitación';
+        return 'Room';
     }
   };
 
@@ -194,9 +217,9 @@ const BookRoom: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
         <Card className="max-w-md w-full mx-4">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-gray-900">Acceso Requerido</CardTitle>
+            <CardTitle className="text-2xl text-gray-900">Access Required</CardTitle>
             <CardDescription>
-              Debes iniciar sesión para realizar una reserva
+              You must be logged in to make a reservation. Only authenticated users can book rooms.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -209,10 +232,10 @@ const BookRoom: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Reservar Habitación
+            Book a Room
           </h1>
           <p className="text-lg text-gray-600">
-            Selecciona tu habitación ideal y las fechas de tu estadía
+            Select your ideal room and choose your stay dates
           </p>
         </div>
 
@@ -222,10 +245,10 @@ const BookRoom: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-purple-600" />
-                <span>Detalles de la Reserva</span>
+                <span>Reservation Details</span>
               </CardTitle>
               <CardDescription>
-                Completa la información para tu reserva
+                Complete the information for your reservation
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -236,17 +259,17 @@ const BookRoom: React.FC = () => {
                     name="roomId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Habitación</FormLabel>
+                        <FormLabel>Room</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecciona una habitación" />
+                              <SelectValue placeholder="Select a room" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {rooms.map((room) => (
                               <SelectItem key={room.id} value={room.id}>
-                                {getRoomTypeTitle(room.type)} #{room.number} - ${room.price}/noche
+                                {getRoomTypeTitle(room.type)} #{room.number} - ${room.price}/night
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -262,7 +285,7 @@ const BookRoom: React.FC = () => {
                       name="checkIn"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Fecha de Entrada</FormLabel>
+                          <FormLabel>Check-in Date</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -276,7 +299,7 @@ const BookRoom: React.FC = () => {
                                   {field.value ? (
                                     format(field.value, "PPP")
                                   ) : (
-                                    <span>Selecciona fecha</span>
+                                    <span>Select date</span>
                                   )}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
@@ -305,7 +328,7 @@ const BookRoom: React.FC = () => {
                       name="checkOut"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Fecha de Salida</FormLabel>
+                          <FormLabel>Check-out Date</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -319,7 +342,7 @@ const BookRoom: React.FC = () => {
                                   {field.value ? (
                                     format(field.value, "PPP")
                                   ) : (
-                                    <span>Selecciona fecha</span>
+                                    <span>Select date</span>
                                   )}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
@@ -351,7 +374,7 @@ const BookRoom: React.FC = () => {
                       <FormItem>
                         <FormLabel className="flex items-center space-x-2">
                           <Users className="w-4 h-4" />
-                          <span>Número de Huéspedes</span>
+                          <span>Number of Guests</span>
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -371,11 +394,11 @@ const BookRoom: React.FC = () => {
                     <div className="flex items-start space-x-2">
                       <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
                       <div className="text-sm text-yellow-800">
-                        <p className="font-medium">Control de Concurrencia</p>
+                        <p className="font-medium">Concurrency Control</p>
                         <p>
-                          Nuestro sistema garantiza que solo una persona pueda reservar cada habitación. 
-                          Si alguien más reserva tu habitación seleccionada mientras completas el formulario, 
-                          serás notificado inmediatamente.
+                          Our system ensures that only one person can book each room. 
+                          If someone else books your selected room while you complete the form, 
+                          you will be notified immediately.
                         </p>
                       </div>
                     </div>
@@ -386,7 +409,7 @@ const BookRoom: React.FC = () => {
                     disabled={isLoading || !selectedRoom}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3"
                   >
-                    {isLoading ? 'Procesando Reserva...' : 'Confirmar Reserva'}
+                    {isLoading ? 'Processing Reservation...' : 'Confirm Reservation'}
                   </Button>
                 </form>
               </Form>
@@ -397,7 +420,7 @@ const BookRoom: React.FC = () => {
           {selectedRoom && (
             <Card>
               <CardHeader>
-                <CardTitle>Vista Previa de la Habitación</CardTitle>
+                <CardTitle>Room Preview</CardTitle>
                 <CardDescription>
                   {getRoomTypeTitle(selectedRoom.type)} #{selectedRoom.number}
                 </CardDescription>
@@ -412,7 +435,7 @@ const BookRoom: React.FC = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">Precio por noche:</span>
+                      <span className="font-medium">Price per night:</span>
                       <span className="text-xl font-bold text-purple-600">
                         ${selectedRoom.price}
                       </span>
@@ -433,7 +456,7 @@ const BookRoom: React.FC = () => {
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-2">Amenidades incluidas:</h4>
+                    <h4 className="font-medium mb-2">Included amenities:</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedRoom.amenities.map((amenity, index) => (
                         <span

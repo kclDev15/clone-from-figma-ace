@@ -7,7 +7,7 @@ export interface User {
 export interface Room {
   id: string;
   number: string;
-  type: 'single' | 'double' | 'suite';
+  type: 'basic' | 'premium' | 'vip';
   price: number;
   amenities: string[];
   image: string;
